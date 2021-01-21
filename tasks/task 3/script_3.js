@@ -1,18 +1,28 @@
 "use strict";
 
-getPostsForUser = async () => 77;
+let getPostsForUser = async function getData(country) {
+    let response = await fetch("https://api.covid19api.com/country/" + country);
+    return await response.json();
+};
 
-async function withMemo(fun) {
-    let cache = {};
+function withMemo(bar) {
+    let funcCache = {};
 
     return async function () {
-        let args = JSON.stringify(arguments);
-        cache[args] = cache[args] || fun.apply(this, arguments);
-        return cache[args];
+        let funcArgs = JSON.stringify(arguments);
+        funcCache[funcArgs] = funcCache[funcArgs] || bar.apply(this, arguments);
+        return funcCache[funcArgs];
     };
 }
 
-const getPostsForUser_memo = getPostsForUser(getCovidState);
+async function f() {
+    const getPostsForUser_memo = withMemo(getPostsForUser);
 
-const data1 = getPostsForUser_memo(); // запрос уходит на бэкенд
-const data2 = getPostsForUser_memo(); // результат возвращается моментально из кэша
+    let data1 = await getPostsForUser_memo("belarus"); // запрос уходит на бэкенд
+    let data2 = await getPostsForUser_memo("belarus"); // результат возвращается моментально из кэша
+
+    console.log(data1);
+    console.log(data2);
+}
+
+f();
