@@ -6,12 +6,12 @@ let getPostsForUser = async function getData(country) {
 };
 
 function withMemo(bar) {
-    let cache = {};
+    let funcCache = {};
 
     return async function () {
-        let args = JSON.stringify(arguments);
-        cache[args] = cache[args] || bar.apply(this, arguments);
-        return cache[args];
+        let funcArgs = JSON.stringify(arguments);
+        funcCache[funcArgs] = funcCache[funcArgs] || bar.apply(this, arguments);
+        return funcCache[funcArgs];
     };
 }
 
