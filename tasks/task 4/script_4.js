@@ -1,21 +1,17 @@
 "use strict";
 
-var minimumDeathsRank6Country = document.getElementById(
+const minimumDeathsRank6Country = document.getElementById(
     "minimumDeathsRank6Country"
 );
-var belarusLeastInfectedDate = document.getElementById(
+const belarusLeastInfectedDate = document.getElementById(
     "belarusLeastInfectedDate"
 );
-var belarusMostInfectedDate = document.getElementById(
+const belarusMostInfectedDate = document.getElementById(
     "belarusMostInfectedDate"
 );
 
-var urlSummaryCovidCases = "https://api.covid19api.com/summary";
-
-var urlBelarusCovidDailyCases = "https://corona-api.com/countries/BY";
-
-var jsonResponse;
-var minimumDeathsRank6CountryResult;
+const urlSummaryCovidCases = "https://api.covid19api.com/summary";
+const urlBelarusCovidDailyCases = "https://corona-api.com/countries/BY";
 
 fetch(urlSummaryCovidCases)
     .then(function (response) {
@@ -27,9 +23,8 @@ fetch(urlSummaryCovidCases)
             return;
         }
 
-        // Examine the text in the response
         response.json().then(function (data) {
-            minimumDeathsRank6CountryResult = getMinimumDeathsRank6Country(
+            let minimumDeathsRank6CountryResult = getMinimumDeathsRank6Country(
                 data.Countries
             );
 
@@ -53,14 +48,9 @@ fetch(urlBelarusCovidDailyCases)
             return;
         }
 
-        // Examine the text in the response
         response.json().then(function (json) {
-            let belarusCovidDailyCasesInPeriod = getCasesInPeriod(
-                json.data.timeline
-            );
-
-            var sortedByCountOfCasesArray = getSortedByCountOfCases(
-                belarusCovidDailyCasesInPeriod
+            let sortedByCountOfCasesArray = getSortedByCountOfCases(
+                getCasesInPeriod(json.data.timeline)
             );
 
             belarusMostInfectedDate.innerHTML =
@@ -79,42 +69,29 @@ fetch(urlBelarusCovidDailyCases)
     });
 
 function getMinimumDeathsRank6Country(jsObj) {
-    let sortedArray = [];
-
-    for (var i in jsObj) {
-        let el = { Country: "", TotalDeaths: "" };
-        // Push each JSON Object entry in array
-        el.Country = jsObj[i].Country;
-        el.TotalDeaths = jsObj[i].TotalDeaths;
-
-        sortedArray.push(el);
-    }
-
-    sortedArray.sort(function (a, b) {
-        return a.TotalDeaths - b.TotalDeaths;
-    });
-    console.log(sortedArray);
-
-    return sortedArray[5];
+    return jsObj
+        .map((element) => ({
+            Country: element.Country,
+            TotalDeaths: element.TotalDeaths,
+        }))
+        .sort(function (a, b) {
+            return a.TotalDeaths - b.TotalDeaths;
+        })[5];
 }
 
 function getCasesInPeriod(jsObj) {
-    let arrayInPeriod = [];
-    let today = new Date().setHours(0, 0, 0, 0);
+    const start = new Date("2020-10-01").setHours(0, 0, 0, 0);
+    const today = new Date().setHours(0, 0, 0, 0);
 
-    for (var i in jsObj) {
-        if (
-            new Date(jsObj[i].date) >= new Date("2020-10-01") &&
-            new Date(jsObj[i].date).setHours(0, 0, 0, 0) !== today // в API какой-то статистический выброс за последний день
-        ) {
-            let el = { Date: "", NewConfirmed: "" };
-            el.Date = jsObj[i].date;
-            el.NewConfirmed = jsObj[i].new_confirmed;
-            arrayInPeriod.push(el);
-        }
-    }
-
-    return arrayInPeriod;
+    return jsObj
+        .map((obj) => ({
+            Date: obj.date,
+            NewConfirmed: obj.new_confirmed,
+        }))
+        .filter((item) => {
+            let date = new Date(item.Date).setHours(0, 0, 0, 0);
+            return date >= start && date !== today;
+        });
 }
 
 function getSortedByCountOfCases(arr) {
